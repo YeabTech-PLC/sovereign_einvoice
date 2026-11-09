@@ -39,3 +39,26 @@ Run these commands inside the Dev Container, from /workspace:
 The SRS and outstanding MoR clarifications are not finalized.
 This repository currently contains technical scaffolding only.
 Do not implement fiscal workflows, final domain models, tenant authorization policies, or production MoR integration before their requirements are approved.
+
+## Generic API error handling and logging
+
+The backend foundation includes:
+
+- Standardized HTTP error responses.
+- Sanitized request-validation errors.
+- Generic internal server error responses.
+- Request correlation IDs through X-Correlation-ID.
+- Structured JSON application logs.
+- Request duration and HTTP status logging.
+- Route-template logging instead of raw request URLs.
+- No request-body, authorization-header or query-string logging.
+- No raw exception messages or stack traces in client responses.
+
+Run the development server using:
+
+    make backend-run
+
+The standard command disables Uvicorn access logging.
+
+Error response structures and application conventions are provisional
+until the API specification is finalized.

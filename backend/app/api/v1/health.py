@@ -19,18 +19,24 @@ async def liveness() -> dict[str, str]:
 
 @router.get("/ready")
 async def readiness() -> dict[str, str]:
-    """Check that the API can execute a query against PostgreSQL."""
+    """Check that PostgreSQL accepts an authenticated query."""
     try:
         async with engine.connect() as connection:
             await connection.execute(text("SELECT 1"))
-    except SQLAlchemyError:
-        logger.exception("PostgreSQL readiness check failed")
+
+    except SQLAlchemyError as exc:
+        # Log only the exception class, not the database error message.
+        logger.error(
+            "database_readiness_failed",
+            extra={
+                "event": "database_readiness_failed",
+                "exception_type": type(exc).__name__,
+            },
+        )
+
         raise HTTPException(
             status_code=503,
-            detail={
-                "status": "not_ready",
-                "database": "unavailable",
-            },
+            detail="Database service unavailable",
         ) from None
 
     return {

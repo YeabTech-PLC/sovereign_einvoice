@@ -6,7 +6,7 @@ backend-install:
 	cd backend && .venv/bin/python -m pip install -e ".[dev]"
 
 backend-run:
-	cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --no-access-log
 
 backend-test:
 	cd backend && .venv/bin/python -m pytest -v

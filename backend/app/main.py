@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import CorrelationIdMiddleware
 from app.db.session import engine
@@ -20,15 +21,21 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings)
 
     logger.info(
-        "Starting %s in %s mode",
-        settings.app_name,
-        settings.app_env,
+        "application_starting",
+        extra={
+            "event": "application_starting",
+            "app_env": settings.app_env,
+        },
     )
 
     yield
 
     await engine.dispose()
-    logger.info("Application database connections closed")
+
+    logger.info(
+        "application_stopped",
+        extra={"event": "application_stopped"},
+    )
 
 
 app = FastAPI(
@@ -41,6 +48,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+register_exception_handlers(app)
 app.add_middleware(CorrelationIdMiddleware)
 
 app.include_router(

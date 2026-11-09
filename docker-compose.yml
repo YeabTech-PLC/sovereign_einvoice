@@ -1,0 +1,93 @@
+name: yeabtech-sovereign-einvoice
+
+services:
+
+  # Main development environment
+  dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+
+    init: true
+    command: ["sleep", "infinity"]
+    working_dir: /workspace
+
+    volumes:
+      - .:/workspace:cached
+      - python_venv:/workspace/backend/.venv
+      - frontend_node_modules:/workspace/frontend/node_modules
+
+    environment:
+      APP_ENV: development
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-yeabtech_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-yeabtech_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the local .env file}
+
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Local development database
+  postgres:
+    image: postgres:18.6-bookworm
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-yeabtech_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-yeabtech_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the local .env file}
+
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
+
+    volumes:
+      # PostgreSQL 18 uses /var/lib/postgresql as its volume root.
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"'
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Celery broker and application cache
+  redis:
+    image: redis:7.4.12-alpine
+    restart: unless-stopped
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-56379}:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:
+  python_venv:
+  frontend_node_modules:

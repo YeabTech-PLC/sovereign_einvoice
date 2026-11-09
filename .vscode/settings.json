@@ -1,0 +1,11 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+}
